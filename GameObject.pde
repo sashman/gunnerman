@@ -1,5 +1,5 @@
 class GameObject{
-  int x; 
-  int y;
-  boolean alive;
+  public int x; 
+  public int y;
+  public boolean alive;
 }

@@ -39,24 +39,32 @@ void draw() {
   
   background(240);
   
+  int t_dx = (pad_size/2);//threshhold
+  int dx = (int)sqrt((int)(pow(left_xinit-mouseX, 2) + (int)pow(left_yinit-mouseY, 2)));
+  if (mousePressed) {
+    
+    if(t_dx > dx){
+      left_spad_x = mouseX;
+      left_spad_y = mouseY;
+      
+      player.x += (mouseX - left_xinit)/10;
+      player.y += (mouseY - left_yinit)/10;
+    }
+    
+  } else {
+    left_spad_x = left_xinit;
+    left_spad_y = left_yinit;
+  }
+  
+  
+  
   player.render();
   draw_controls();
   
   
   
   
-  if (mousePressed) {
-    int t_dx = (pad_size/2);//threshhold
-    int dx = (int)sqrt((int)(pow(left_xinit-mouseX, 2) + (int)pow(left_yinit-mouseY, 2)));
-    if(t_dx > dx){
-      left_spad_x = mouseX;
-      left_spad_y = mouseY;
-      
-    }
-  } else {
-    left_spad_x = left_xinit;
-    left_spad_y = left_yinit;
-  }
+
   
   /*
   ellipse(mouseX, mouseY, 80, 80);
