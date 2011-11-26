@@ -1,5 +1,7 @@
 
 
+import android.view.*;
+
 int pad_size = 150;
 int subpad_size = 50;
 int left_spad_x;
@@ -8,10 +10,16 @@ int left_spad_y;
 int right_spad_x;
 int right_spad_y;
 
-int left_xinit; //= (int)(pad_size/1.5);
-int left_yinit; //= height-(int)(pad_size/1.5);
-int right_xinit; //= width-(int)(pad_size/1.5);
-int right_yinit; //= height-(int)(pad_size/1.5);
+int left_xinit;
+int left_yinit;
+int right_xinit;
+int right_yinit;
+
+int outer_t_dx;  //outer analog stick threshold, used to assign multi touch id to analog sticks
+int inner_t_dx; //inner analog stick threshhold
+
+int rst; //right sesitivity threshold
+int left_dx,right_dx; //actual distance from the centre of the analog stick
 
 Player player;
 
@@ -31,6 +39,12 @@ void setup() {
   //left_spad_x = 100;
   //left_spad_y = 100;
   
+  
+  outer_t_dx = (pad_size);
+  inner_t_dx = (pad_size/2);
+  
+  rst = (pad_size/4);
+  
   size(800, 480);
   smooth();
 }
@@ -39,17 +53,8 @@ void draw() {
   
   background(240);
   
-  int t_dx = (pad_size/2);//threshhold
-  int dx = (int)sqrt((int)(pow(left_xinit-mouseX, 2) + (int)pow(left_yinit-mouseY, 2)));
+  
   if (mousePressed) {
-    
-    if(t_dx > dx){
-      left_spad_x = mouseX;
-      left_spad_y = mouseY;
-      
-      player.x += (mouseX - left_xinit)/10;
-      player.y += (mouseY - left_yinit)/10;
-    }
     
   } else {
     left_spad_x = left_xinit;
@@ -57,14 +62,8 @@ void draw() {
   }
   
   
-  
   player.render();
   draw_controls();
-  
-  
-  
-  
-
   
   /*
   ellipse(mouseX, mouseY, 80, 80);
@@ -78,3 +77,37 @@ public void draw_controls(){
   ellipse(left_spad_x, left_spad_y, subpad_size,subpad_size);
   ellipse(right_spad_x, right_spad_y, subpad_size,subpad_size);
 }
+
+
+public boolean surfaceTouchEvent(MotionEvent me) {
+  // Number of places on the screen being touched:
+  int numPointers = me.getPointerCount();
+  for(int i=0; i < numPointers; i++) {
+    int pointerId = me.getPointerId(i);
+    int x = (int)me.getX(i);
+    int y = (int)me.getY(i);
+    left_dx = (int)sqrt((int)(pow(left_xinit-x, 2) + (int)pow(left_yinit-y, 2)));  
+    right_dx  = (int)sqrt((int)(pow(right_xinit-x, 2) + (int)pow(right_yinit-y, 2)));  
+    
+    //find out which analog stick the event corrsponds to
+    if(outer_t_dx > left_dx){
+      //left analog
+      if(inner_t_dx > left_dx){
+        left_spad_x = x;
+        left_spad_y = y;
+        
+        player.moveXY((x - left_xinit)/10, (y - left_yinit)/10);
+      }
+    } else if(outer_t_dx > right_dx){
+      //right analog
+      if(inner_t_dx > right_dx){
+         right_spad_x = x;
+         right_spad_y = y;
+         player.dir = atan2(x-right_xinit,y-right_yinit);
+         
+      }
+    }
+  }
+  return super.surfaceTouchEvent(me);
+}
+
