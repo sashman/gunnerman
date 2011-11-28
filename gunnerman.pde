@@ -22,10 +22,13 @@ int rst; //right sesitivity threshold
 int left_dx,right_dx; //actual distance from the centre of the analog stick
 
 Player player;
+GameMap game_map;
 
 
 void setup() {
-  player = new Player(width/2, height/2);
+  game_map = new GameMap();
+  game_map.loadMap("map0");
+  player = new Player(width/2, height/2, game_map);
   
   left_xinit = (int)(pad_size/1.5);
   left_yinit = height-(int)(pad_size/1.5);
@@ -57,12 +60,12 @@ void draw() {
   if (mousePressed) {
     
   } else {
-    left_spad_x = left_xinit;
-    left_spad_y = left_yinit;
+    
   }
   
   
   player.render();
+  game_map.render();
   draw_controls();
   
   /*
@@ -80,6 +83,7 @@ public void draw_controls(){
 
 
 public boolean surfaceTouchEvent(MotionEvent me) {
+  boolean reset_left = true;
   // Number of places on the screen being touched:
   int numPointers = me.getPointerCount();
   for(int i=0; i < numPointers; i++) {
@@ -95,17 +99,21 @@ public boolean surfaceTouchEvent(MotionEvent me) {
       if(inner_t_dx > left_dx){
         left_spad_x = x;
         left_spad_y = y;
-        
-        player.moveXY((x - left_xinit)/10, (y - left_yinit)/10);
+        reset_left = false;
       }
+      player.moveXY((x - left_xinit)/10, (y - left_yinit)/10);
     } else if(outer_t_dx > right_dx){
       //right analog
       if(inner_t_dx > right_dx){
          right_spad_x = x;
          right_spad_y = y;
          player.dir = atan2(x-right_xinit,y-right_yinit);
-         
       }
+    }
+    
+    if(reset_left){
+      left_spad_x = left_xinit;
+      left_spad_y = left_yinit;
     }
   }
   return super.surfaceTouchEvent(me);

@@ -1,0 +1,10 @@
+<?xml version="1.0">
+<map width='500' height='500'>
+
+<wall
+	x='0'
+	y='0'
+	width='10'
+	height='100'/>
+
+</map>
