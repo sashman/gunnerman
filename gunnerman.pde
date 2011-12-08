@@ -26,9 +26,8 @@ GameMap game_map;
 
 
 void setup() {
-  game_map = new GameMap();
-  game_map.loadMap("map0");
-  player = new Player(width/2, height/2, game_map);
+  game_map = new GameMap("map0");
+  player = new Player(game_map.sizeX/2, game_map.sizeY/2, game_map);
   
   left_xinit = (int)(pad_size/1.5);
   left_yinit = height-(int)(pad_size/1.5);
@@ -39,16 +38,14 @@ void setup() {
   left_spad_y = left_yinit;
   right_spad_x = right_xinit;
   right_spad_y = right_yinit;
-  //left_spad_x = 100;
-  //left_spad_y = 100;
-  
   
   outer_t_dx = (pad_size);
   inner_t_dx = (pad_size/2);
   
   rst = (pad_size/4);
   
-  size(800, 480);
+  orientation(LANDSCAPE);
+  //size(800, 480);
   smooth();
 }
 

@@ -1,9 +1,5 @@
-class Wall{
-  public int x;
-  public int y; 
-  public int width;
-  public int height;
-  GameMap m;
+class Wall extends GameObject{
+  
   public Wall(int x,int y,int width,int height, GameMap m){
     this.x = x;
     this.y = y;
