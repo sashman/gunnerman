@@ -4,6 +4,7 @@ class Bullet extends GameObject{
  float y_dir;
  
  int type;
+ int speed = 10;
  
  public Bullet(int x, int y, float x_dir, float y_dir, GameMap m, int type){
    
@@ -28,8 +29,8 @@ class Bullet extends GameObject{
    if(!alive) return;
    
    if(type == 0){
-     x+=(int)(this.x_dir*5);
-     y+=(int)(this.y_dir*5);
+     x+=(int)(this.x_dir*speed);
+     y+=(int)(this.y_dir*speed);
      int c;
      if((c = check_collision(true))!=-999){
        alive = false;

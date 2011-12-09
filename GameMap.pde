@@ -111,6 +111,8 @@ class GameMap {
   public void renderBullets(){
    for(int i = 0; i < bullets.size(); i++) bullets.get(i).render();
   }
+  
+  
 
   public int getScreenX(int x) {
     return x-vpX;

@@ -10,12 +10,20 @@ class Player extends GameObject{
   int speed_cap = 5;
   float speed_scale = .5;
   
+  
+  //life
+  private int max_lives = 5;
+  int lives = max_lives;
+  
+  //weapons
   //0 Pistol
   int weapon;
   
   boolean fired;
   int fire_count = 0;
-  int pistol_delay = 3000; 
+  int pistol_delay = 1000;
+  
+  PFont font = createFont("Arial Bold",48);
   
   Player(int x, int y, GameMap m){
      this.alive = true;
@@ -27,10 +35,12 @@ class Player extends GameObject{
   }
   
   public void moveXY(int x_, int y_){
+    /*
     if(x_>speed_cap) x_ = speed_cap;
     if(x_<-speed_cap) x_ = -speed_cap;
     if(y_>speed_cap) y_ = speed_cap;
     if(y_<-speed_cap) y_ = -speed_cap;
+    */
     
     this.x += (x_ * speed_scale);
     int c;
@@ -38,13 +48,7 @@ class Player extends GameObject{
        
     this.y += (y_ * speed_scale);
     if((c = check_collision(false))!=-999) this.y = c;
-   
-    //int[] carray = check_collision();
-    //if(carray[0] != -999 || carray[1] != -999){
 
-    //  this.x = carray[0];
-    //  this.y = carray[1];
-    //}else{
     
       sc_x = m.getScreenX(x);
       sc_y = m.getScreenY(y);
@@ -113,7 +117,7 @@ class Player extends GameObject{
       if(millis() - fire_count >= pistol_delay){
        fired=false;
        fire_count = 0;
-       println("READY") ;
+       //println("READY") ;
       }
     }   
    
@@ -131,16 +135,34 @@ class Player extends GameObject{
   
   private void launch_bullet(){
     //println("New bullet x " +x + " y " + y + " dir_x " + cos(-dir+(3.14/2))+sc_x + " dir_y " + sin(-dir+(3.14/2))+sc_y + " type " + weapon);
-    Bullet b = new Bullet((int)cos(-dir+(3.14/2))*point_size+x, (int)sin(-dir+(3.14/2))*point_size+y, cos(-dir+(3.14/2)), sin(-dir+(3.14/2)), this.m, weapon);
+    Bullet b = new Bullet((int)(cos(-dir+(3.14/2))*point_size+x), (int)(sin(-dir+(3.14/2))*point_size+y), cos(-dir+(3.14/2)), sin(-dir+(3.14/2)), this.m, weapon);
     m.add_bullet(b);
   }
   
   public void render(){
-    //int sc_x = m.getScreenX(x);
-    //int sc_y = m.getScreenY(y);
-    
+
     line(sc_x,sc_y,cos(-dir+(3.14/2))*point_size+sc_x, sin(-dir+(3.14/2))*point_size+sc_y);
     ellipse(sc_x, sc_y, size,size);
-     
+    
+  }
+  
+  private void renderHUD(){
+    textFont(font,24);
+     switch(weapon){
+       case 0:
+         text("Pistol", 50, 20);
+         fill(0);
+         rect(50,30, 40, 10);
+         fill(255);
+         if(fired)
+           rect(50,30, (float)(millis()-fire_count)/(float)pistol_delay * 40, 10);
+         else rect(50,30, 40, 10);
+         break;
+     }
+
+    fill(0);
+    for(int i=0; i<max_lives; i++) ellipse(50+(i*10), 50, 8, 8);
+    fill(256);
+    for(int i=0; i<lives; i++) ellipse(50+(i*10), 50, 8, 8);
   }
 }

@@ -21,9 +21,14 @@ int inner_t_dx; //inner analog stick threshhold
 int rst; //right sesitivity threshold
 int left_dx,right_dx; //actual distance from the centre of the analog stick
 
+boolean r_press = false;
+boolean fired = false;
+
 Player player;
 GameMap game_map;
 
+
+PFont font = createFont("Arial Bold",48);
 
 void setup() {
   game_map = new GameMap("map0");
@@ -63,13 +68,16 @@ void draw() {
   player.update();
   game_map.update();
   
+  fill(255);
   player.render();
   game_map.render();
   draw_controls();
   
-  /*
-  ellipse(mouseX, mouseY, 80, 80);
-  */
+  textFont(font,10);
+  fill(0);
+  text("FPS " + int(frameRate),10,10);
+  player.renderHUD();
+
 }
 
 
@@ -83,6 +91,7 @@ public void draw_controls(){
 
 public boolean surfaceTouchEvent(MotionEvent me) {
   boolean reset_left = true;
+  r_press = false;
   // Number of places on the screen being touched:
   int numPointers = me.getPointerCount();
   for(int i=0; i < numPointers; i++) {
@@ -115,7 +124,8 @@ public boolean surfaceTouchEvent(MotionEvent me) {
       left_spad_x = left_xinit;
       left_spad_y = left_yinit;
     }
-  }
+    
+  }  
   return super.surfaceTouchEvent(me);
 }
 
