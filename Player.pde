@@ -9,13 +9,21 @@ class Player extends GameObject{
   
   int speed_cap = 5;
   float speed_scale = .5;
+  
+  //0 Pistol
+  int weapon;
+  
+  boolean fired;
+  int fire_count = 0;
+  int pistol_delay = 3000; 
+  
   Player(int x, int y, GameMap m){
      this.alive = true;
      this.x=x;
      this.y=y;
      this.m=m;
-     
-     
+     this.weapon = 0;
+     fired = false;
   }
   
   public void moveXY(int x_, int y_){
@@ -62,6 +70,7 @@ class Player extends GameObject{
     //}
    }
    
+ 
   public int check_collision(boolean x_dir){
     LinkedList<LinkedList<GameObject>> local_objs = m.getCellObjects(x-this.size/2,y-this.size/2,this.size,this.size);
     
@@ -69,35 +78,22 @@ class Player extends GameObject{
     
     while(local_objs.size()>0){
       LinkedList<GameObject> l = local_objs.removeFirst();
-      /*while(l.size()>0){
-        int t = collision(l.removeFirst(), x_dir);
-        if(t != -999) return t;
-      }*/
+
       for(int i = 0; i < l.size(); i++){
         int t = collision(l.get(i), x_dir);
         if(t != -999) return t;
       }
     }
-    
-    /*
-    for(int i = 0; i < local_objs.length; i++){
-      int t = collision(local_objs.get(i), x_dir);
-      if(t != -999) return t;
-    }
-    */
+
     
     return -999;
   }
   
   private int collision(GameObject obj, boolean x_dir){
-    int colx = -999;
-    int coly = -999;
-
     int oc_x = obj.x+obj.width/2;
     int oc_y = obj.y+obj.height/2;
     if (x+size/2 > obj.x && x < obj.x+obj.width+size/2
       && y+size/2 > obj.y && y < obj.y+obj.height+size/2){
-        //println("Collision");
         if(x_dir){
           if(oc_x < x) return obj.x+obj.width+size/2;
           else return obj.x - size/2;
@@ -105,17 +101,38 @@ class Player extends GameObject{
           if(oc_y < y) return obj.y+obj.height+size/2;
           else return obj.y - size/2;
         }
-        /*
-          if(oc_x < x) colx = obj.x+obj.width;
-          else colx = obj.x - size/2;
-          if(oc_x < x) colx = obj.x+obj.width;
-          else colx = obj.x - size/2
-          */
     }
-    
     return -999;
-    //int[] r = {colx,coly};
-    //return r;
+  }
+  
+  
+  public void update(){
+    
+    
+    if(fired){
+      if(millis() - fire_count >= pistol_delay){
+       fired=false;
+       fire_count = 0;
+       println("READY") ;
+      }
+    }   
+   
+  }
+  
+  public void fire(){
+   
+   if(!fired){
+     fired=true;
+     launch_bullet();
+     if(weapon==0) fire_count = millis();
+   }
+    
+  }
+  
+  private void launch_bullet(){
+    //println("New bullet x " +x + " y " + y + " dir_x " + cos(-dir+(3.14/2))+sc_x + " dir_y " + sin(-dir+(3.14/2))+sc_y + " type " + weapon);
+    Bullet b = new Bullet((int)cos(-dir+(3.14/2))*point_size+x, (int)sin(-dir+(3.14/2))*point_size+y, cos(-dir+(3.14/2)), sin(-dir+(3.14/2)), this.m, weapon);
+    m.add_bullet(b);
   }
   
   public void render(){

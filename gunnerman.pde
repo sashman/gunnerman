@@ -60,6 +60,8 @@ void draw() {
     
   }
   
+  player.update();
+  game_map.update();
   
   player.render();
   game_map.render();
@@ -105,6 +107,7 @@ public boolean surfaceTouchEvent(MotionEvent me) {
          right_spad_x = x;
          right_spad_y = y;
          player.dir = atan2(x-right_xinit,y-right_yinit);
+         player.fire();
       }
     }
     

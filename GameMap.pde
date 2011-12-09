@@ -16,6 +16,7 @@ class GameMap {
 
   
   private ArrayList<Wall> walls = new ArrayList<Wall>();
+  private ArrayList<Bullet> bullets = new ArrayList<Bullet>();
 
   int cell_w = 4;  
   int cell_h = 4;
@@ -90,14 +91,25 @@ class GameMap {
     }
   }
   
+  public void add_bullet(Bullet b){
+    bullets.add(b);
+  }
+  
+  public void update(){
+    for(int i = 0; i < bullets.size(); i++) bullets.get(i).moveXY();
+  }
+  
   public void render(){
     renderWalls();
+    renderBullets();
   }
   
   public void renderWalls(){
-   for(int i = 0; i < walls.size(); i++){
-     walls.get(i).render();
-   } 
+   for(int i = 0; i < walls.size(); i++) walls.get(i).render();
+  }
+  
+  public void renderBullets(){
+   for(int i = 0; i < bullets.size(); i++) bullets.get(i).render();
   }
 
   public int getScreenX(int x) {
