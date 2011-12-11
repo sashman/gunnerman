@@ -15,12 +15,17 @@ int left_yinit;
 int right_xinit;
 int right_yinit;
 
+//player acc
+int ax = 0;
+int ay = 0;
+
 int outer_t_dx;  //outer analog stick threshold, used to assign multi touch id to analog sticks
 int inner_t_dx; //inner analog stick threshhold
 
 int rst; //right sesitivity threshold
 int left_dx,right_dx; //actual distance from the centre of the analog stick
 
+boolean l_press = false;
 boolean r_press = false;
 boolean fired = false;
 
@@ -60,11 +65,21 @@ void draw() {
   
   
   if (mousePressed) {
+    if(!l_press && r_press){
+      left_spad_x = left_xinit;
+      left_spad_y = left_yinit;
+      ax = 0;
+      ay = 0; 
+    }
     
   } else {
-    
+      left_spad_x = left_xinit;
+      left_spad_y = left_yinit;
+      ax = 0;
+      ay = 0;
   }
   
+  player.moveXY(ax,ay);
   player.update();
   game_map.update();
   
@@ -92,6 +107,7 @@ public void draw_controls(){
 public boolean surfaceTouchEvent(MotionEvent me) {
   boolean reset_left = true;
   r_press = false;
+  l_press = false;
   // Number of places on the screen being touched:
   int numPointers = me.getPointerCount();
   for(int i=0; i < numPointers; i++) {
@@ -103,14 +119,18 @@ public boolean surfaceTouchEvent(MotionEvent me) {
     
     //find out which analog stick the event corrsponds to
     if(outer_t_dx > left_dx){
+      l_press = true;
       //left analog
       if(inner_t_dx > left_dx){
         left_spad_x = x;
         left_spad_y = y;
         reset_left = false;
       }
-      player.moveXY((x - left_xinit)/10, (y - left_yinit)/10);
+      ax = (x - left_xinit)/10;
+      ay = (y - left_yinit)/10;
+
     } else if(outer_t_dx > right_dx){
+      r_press = true;
       //right analog
       if(inner_t_dx > right_dx){
          right_spad_x = x;
@@ -123,6 +143,8 @@ public boolean surfaceTouchEvent(MotionEvent me) {
     if(reset_left){
       left_spad_x = left_xinit;
       left_spad_y = left_yinit;
+      ax = 0;
+      ay = 0;
     }
     
   }  

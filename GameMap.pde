@@ -5,8 +5,8 @@ class GameMap {
   int sizeX =0;
   int sizeY =0;
 
-  int vpX = 0;
-  int vpY = 0;
+  public int vpX = 0;
+  public int vpY = 0;
 
   float vpMoveScreenRatio = .3;
   public int left_t = (int)(width*vpMoveScreenRatio);

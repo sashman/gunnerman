@@ -1,4 +1,5 @@
 class Player extends GameObject{
+  boolean show_coords = true;
   
   int sc_x;
   int sc_y;
@@ -7,9 +8,14 @@ class Player extends GameObject{
   float dir = 0;
   int point_size = 20;
   
-  int speed_cap = 5;
+  int speed_cap = 10;
   float speed_scale = .5;
   
+  int ax=0;
+  int ay=0;
+  int dx=0;
+  int dy=0;
+  int friction = 1;
   
   //life
   private int max_lives = 5;
@@ -34,19 +40,22 @@ class Player extends GameObject{
      fired = false;
   }
   
-  public void moveXY(int x_, int y_){
-    /*
-    if(x_>speed_cap) x_ = speed_cap;
-    if(x_<-speed_cap) x_ = -speed_cap;
-    if(y_>speed_cap) y_ = speed_cap;
-    if(y_<-speed_cap) y_ = -speed_cap;
-    */
-    
-    this.x += (x_ * speed_scale);
+  public void moveXY(int ax_, int ay_){
+    ax = ax_;
+    ay = ay_;
+  }
+  
+  private void update_pos(){
+
+    dx = constrain(-speed_cap, dx, speed_cap);
+    dy = constrain(-speed_cap, dy, speed_cap);
+    dx*=speed_scale;
+    dy*=speed_scale;
+    this.x += (dx);
     int c;
     if((c = check_collision(true))!=-999) this.x = c;
        
-    this.y += (y_ * speed_scale);
+    this.y += (dy);
     if((c = check_collision(false))!=-999) this.y = c;
 
     
@@ -55,23 +64,24 @@ class Player extends GameObject{
       
       if(sc_x<m.left_t){
         sc_x = m.left_t;
-        m.changeVpX(x_);
+        m.changeVpX(dx-1);
+
       }
       else if(sc_x>m.right_t){
         sc_x = m.right_t;
-        m.changeVpX(x_);
+        m.changeVpX(dx+1);
       }
       
       if(sc_y<m.top_t){
         sc_y = m.top_t;
-        m.changeVpY(y_);
+        m.changeVpY(dy-1);
+        //println("sc_y " + sc_y + " m.top_t " + m.top_t);
       }
       else if(sc_y>m.bottom_t){
         sc_y = m.bottom_t;
-        m.changeVpY(y_);
+        m.changeVpY(dy+1);
       }
     
-    //}
    }
    
  
@@ -112,6 +122,17 @@ class Player extends GameObject{
   
   public void update(){
     
+    dx+=ax;
+    dy+=ay;
+    
+    /*
+    if(dx>0) dx-=friction;
+    if(dx<0) dx+=friction;
+    if(dy>0) dy-=friction;
+    if(dy<0) dy+=friction;
+    */
+    
+    update_pos();
     
     if(fired){
       if(millis() - fire_count >= pistol_delay){
@@ -164,5 +185,16 @@ class Player extends GameObject{
     for(int i=0; i<max_lives; i++) ellipse(50+(i*10), 50, 8, 8);
     fill(256);
     for(int i=0; i<lives; i++) ellipse(50+(i*10), 50, 8, 8);
+    
+    if(show_coords){
+      textFont(font,12);
+      fill(0);
+      text("ax " + ax + " ay " + ay, 12, 65);
+      text("vx " + dx + " vy " + dy, 12, 75);
+      text("x " + x + " y " + y, 12, 85);
+      text("scx " + sc_x + " scy " + sc_y, 12, 95);
+      text("vpx " + m.vpX + " vpy " + m.vpY, 12, 105);      
+    }
+    
   }
 }
