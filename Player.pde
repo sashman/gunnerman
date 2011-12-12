@@ -8,7 +8,7 @@ class Player extends GameObject{
   float dir = 0;
   int point_size = 20;
   
-  int speed_cap = 10;
+  int speed_cap = 5;
   float speed_scale = .5;
   
   int ax=0;
@@ -29,15 +29,29 @@ class Player extends GameObject{
   int fire_count = 0;
   int pistol_delay = 1000;
   
+  LinkedList<int[]> relevant_cells = new LinkedList<int[]>();
+  
   PFont font = createFont("Arial Bold",48);
   
-  Player(int x, int y, GameMap m){
+  //null for human controling 
+  PlayerControl pc;
+  
+  Player(int x, int y, GameMap m, PlayerControl pc){
+     this.coltype = "player";
      this.alive = true;
      this.x=x;
      this.y=y;
+     this.width = size;
+     this.height = size;
      this.m=m;
      this.weapon = 0;
      fired = false;
+     this.pc = pc;
+     if(pc!=null) show_coords = false;
+     sc_x = m.getScreenX(x);
+     sc_y = m.getScreenY(y);
+     
+     m.players.add(this);
   }
   
   public void moveXY(int ax_, int ay_){
@@ -47,20 +61,25 @@ class Player extends GameObject{
   
   private void update_pos(){
 
-    dx = constrain(-speed_cap, dx, speed_cap);
-    dy = constrain(-speed_cap, dy, speed_cap);
     dx*=speed_scale;
     dy*=speed_scale;
+    dx = constrain(dx, -speed_cap, speed_cap);
+    dy = constrain(dy, -speed_cap, speed_cap);
+    
+    
+    if(dx==0 && dy==0) return;
     this.x += (dx);
-    int c;
-    if((c = check_collision(true))!=-999) this.x = c;
+    Collision c = check_collision(true);
+    if(c.value!=-999) this.x = c.value;
        
     this.y += (dy);
-    if((c = check_collision(false))!=-999) this.y = c;
+    c = check_collision(false);
+    if(c.value!=-999) this.y = c.value;
 
-    
+    if(pc==null){
       sc_x = m.getScreenX(x);
       sc_y = m.getScreenY(y);
+      
       
       if(sc_x<m.left_t){
         sc_x = m.left_t;
@@ -81,12 +100,18 @@ class Player extends GameObject{
         sc_y = m.bottom_t;
         m.changeVpY(dy+1);
       }
-    
+    }
    }
    
  
-  public int check_collision(boolean x_dir){
-    LinkedList<LinkedList<GameObject>> local_objs = m.getCellObjects(x-this.size/2,y-this.size/2,this.size,this.size);
+  public Collision check_collision(boolean x_dir){
+    LinkedList<LinkedList<GameObject>> local_objs;
+    try{
+      local_objs = m.getCellObjects(x-this.size/2,y-this.size/2,this.size,this.size);
+    }catch (ArrayIndexOutOfBoundsException e){
+      //println("ArrayIndexOutOfBoundsException: " + e.getMessage());
+      return new Collision(-999, "", null);
+    }
     
     //if (local_objs.size() == 0) return -999;
     
@@ -94,13 +119,16 @@ class Player extends GameObject{
       LinkedList<GameObject> l = local_objs.removeFirst();
 
       for(int i = 0; i < l.size(); i++){
+        if(l.get(i).getColType() == "player") continue;
         int t = collision(l.get(i), x_dir);
-        if(t != -999) return t;
+        if(t != -999){
+          return new Collision(t, l.get(i).getColType(), l.get(i));
+        }
       }
     }
 
     
-    return -999;
+    return new Collision(-999, "", null);
   }
   
   private int collision(GameObject obj, boolean x_dir){
@@ -125,14 +153,8 @@ class Player extends GameObject{
     dx+=ax;
     dy+=ay;
     
-    /*
-    if(dx>0) dx-=friction;
-    if(dx<0) dx+=friction;
-    if(dy>0) dy-=friction;
-    if(dy<0) dy+=friction;
-    */
-    
     update_pos();
+    m.add_to_collision_cells(this);
     
     if(fired){
       if(millis() - fire_count >= pistol_delay){
@@ -141,6 +163,10 @@ class Player extends GameObject{
        //println("READY") ;
       }
     }   
+    
+    if(pc!=null && alive){
+      pc.update(this);
+    }
    
   }
   
@@ -160,19 +186,38 @@ class Player extends GameObject{
     m.add_bullet(b);
   }
   
+  public void loseLife(){
+    lives--;
+    if(lives<1) alive = false;
+  }
+  
   public void render(){
 
-    line(sc_x,sc_y,cos(-dir+(3.14/2))*point_size+sc_x, sin(-dir+(3.14/2))*point_size+sc_y);
-    ellipse(sc_x, sc_y, size,size);
     
+    if(pc!=null){
+       sc_x = m.getScreenX(x);
+       sc_y = m.getScreenY(y);
+    }
+    
+    if(alive){
+      line(sc_x,sc_y,cos(-dir+(3.14/2))*point_size+sc_x, sin(-dir+(3.14/2))*point_size+sc_y);
+      ellipse(sc_x, sc_y, size,size);
+    } else {
+      textFont(font,14);
+      fill(0);
+      if(pc!=null) text("Opponent killed", sc_x, sc_y);
+      if(pc==null) text("You have been killed", sc_x, sc_y);
+    }
+
   }
   
   private void renderHUD(){
     textFont(font,24);
      switch(weapon){
        case 0:
-         text("Pistol", 50, 20);
          fill(0);
+         text("Pistol", 50, 20);
+
          rect(50,30, 40, 10);
          fill(255);
          if(fired)
@@ -183,7 +228,8 @@ class Player extends GameObject{
 
     fill(0);
     for(int i=0; i<max_lives; i++) ellipse(50+(i*10), 50, 8, 8);
-    fill(256);
+    fill(255);
+    
     for(int i=0; i<lives; i++) ellipse(50+(i*10), 50, 8, 8);
     
     if(show_coords){

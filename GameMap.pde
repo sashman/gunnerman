@@ -17,6 +17,7 @@ class GameMap {
   
   private ArrayList<Wall> walls = new ArrayList<Wall>();
   private ArrayList<Bullet> bullets = new ArrayList<Bullet>();
+  public ArrayList<Player> players = new ArrayList<Player>();
 
   int cell_w = 4;  
   int cell_h = 4;
@@ -55,6 +56,7 @@ class GameMap {
            int wally = sc.nextInt();
            int wallwidth = sc.nextInt();
            int wallheight = sc.nextInt();
+           //println("Wall " + wallx + " " + wally + " " + wallwidth + " " + wallheight);
            Wall w = new Wall(wallx,wally,wallwidth,wallheight, this);
            walls.add(w);
            add_to_collision_cells(w);
@@ -65,8 +67,29 @@ class GameMap {
       }
       
       
-    }catch (NullPointerException e){
+    }catch (Exception e){
       println("Error: " + e.getMessage());
+      println("Creating map!");
+      sizeX = 1000;
+      sizeY = 500;
+      Wall w = new Wall(0,0,1000,10,this);
+      walls.add(w);
+      add_to_collision_cells(w);
+      w = new Wall(0,500,1000,10,this);
+      walls.add(w);
+      add_to_collision_cells(w);
+      w = new Wall(0,0,10,500,this);
+      walls.add(w);
+      add_to_collision_cells(w);
+      w = new Wall(1000,0,10,500,this);
+      walls.add(w);
+      add_to_collision_cells(w);
+      w = new Wall(333,100,10,300,this);
+      walls.add(w);
+      add_to_collision_cells(w);
+      w = new Wall(666,100,10,300,this);
+      walls.add(w);
+      add_to_collision_cells(w);
     }
     
   }
@@ -77,15 +100,46 @@ class GameMap {
     int i2 = (int)((float)(o.x+o.width)/(float)sizeX*cell_w);
     int j2 = (int)((float)(o.y+o.height)/(float)sizeY*cell_h);
     
-    println("Adding new wall");
+    //println("Adding new wall");
 //    println("x=" + o.x + " y=" + o.y);
-    //sprintln("i1 = " + i1 + " j1 = " + j1 + " i2 = " + i2 + " j2 = " + j2 );
+    //println("i1 = " + i1 + " j1 = " + j1 + " i2 = " + i2 + " j2 = " + j2 );
     for(int i = i1; i<=i2; i++){
       for(int j = j1; j<=j2; j++){
         
         if(!cells[i][j].contains(o)){
-          println("\t cell " + i + ","+j);  
+          //println("\t cell " + i + ","+j);  
           cells[i][j].add(o);
+        }
+      }
+    }
+  }
+  
+  public void add_to_collision_cells(Player p){
+    int i1 = (int)(((float)(p.x-(p.size/2))/(float)sizeX)*cell_w);
+    int j1 = (int)(((float)(p.y-(p.size/2))/(float)sizeY)*cell_h);
+    int i2 = (int)((float)(p.x+(p.size/2))/(float)sizeX*cell_w);
+    int j2 = (int)((float)(p.y+(p.size/2))/(float)sizeY*cell_h);
+    
+    //println("i1 = " + i1 + " j1 = " + j1 + " i2 = " + i2 + " j2 = " + j2 );
+    
+    if(p.relevant_cells.size()>0 && p.relevant_cells.getFirst()[0] == i1 && p.relevant_cells.getFirst()[1] == j1 &&
+                                    p.relevant_cells.getLast()[0] == i2 && p.relevant_cells.getLast()[1] == j2) return;
+                                    else{
+                                      for(int i = 0; i<p.relevant_cells.size(); i++){
+                                        cells[p.relevant_cells.get(i)[0]][p.relevant_cells.get(i)[1]].remove(p);
+                                      }
+                                      p.relevant_cells = new LinkedList<int[]>();
+                                    }
+    
+
+    //println("Player in added in");
+    for(int i = i1; i<=i2; i++){
+      for(int j = j1; j<=j2; j++){
+        int[] cellpair = {i,j};
+        p.relevant_cells.add(cellpair);
+        if(!cells[i][j].contains(p)){
+          //println("\t cell " + i + ","+j);  
+          cells[i][j].add(p);
         }
       }
     }

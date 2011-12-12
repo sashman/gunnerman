@@ -30,6 +30,7 @@ boolean r_press = false;
 boolean fired = false;
 
 Player player;
+ArrayList<Player> opponents;
 GameMap game_map;
 
 
@@ -37,7 +38,12 @@ PFont font = createFont("Arial Bold",48);
 
 void setup() {
   game_map = new GameMap("map0");
-  player = new Player(game_map.sizeX/2, game_map.sizeY/2, game_map);
+  player = new Player(game_map.sizeX/2, game_map.sizeY/2, game_map, null);
+  game_map.add_to_collision_cells(player);
+  opponents = new ArrayList<Player>();
+  opponents.add(new Player(game_map.sizeX/2, game_map.sizeY/2+50, game_map, new RandomAI()));
+  for(int i = 0; i < opponents.size(); i++)
+    game_map.add_to_collision_cells(opponents.get(i));
   
   left_xinit = (int)(pad_size/1.5);
   left_yinit = height-(int)(pad_size/1.5);
@@ -63,7 +69,7 @@ void draw() {
   
   background(240);
   
-  
+  //UPDATES
   if (mousePressed) {
     if(!l_press && r_press){
       left_spad_x = left_xinit;
@@ -81,10 +87,14 @@ void draw() {
   
   player.moveXY(ax,ay);
   player.update();
+  
+  for(int i=0; i<opponents.size(); i++) opponents.get(i).update();
   game_map.update();
   
+  //RENDERING 
   fill(255);
   player.render();
+  for(int i=0; i<opponents.size(); i++) opponents.get(i).render();
   game_map.render();
   draw_controls();
   
@@ -97,6 +107,7 @@ void draw() {
 
 
 public void draw_controls(){
+  fill(255);
   ellipse((pad_size/1.5), height-(pad_size/1.5), pad_size,pad_size);
   ellipse(width-(pad_size/1.5), height-(pad_size/1.5), pad_size,pad_size);
   ellipse(left_spad_x, left_spad_y, subpad_size,subpad_size);
@@ -125,6 +136,10 @@ public boolean surfaceTouchEvent(MotionEvent me) {
         left_spad_x = x;
         left_spad_y = y;
         reset_left = false;
+      } else {
+        float a = atan2(left_xinit-x, left_yinit-y);
+        left_spad_x = (int)(cos(-a-PI/2)*inner_t_dx)+left_xinit;
+        left_spad_y = (int)(sin(-a-PI/2)*inner_t_dx)+left_yinit;
       }
       ax = (x - left_xinit)/10;
       ay = (y - left_yinit)/10;
@@ -140,12 +155,14 @@ public boolean surfaceTouchEvent(MotionEvent me) {
       }
     }
     
+    /*
     if(reset_left){
       left_spad_x = left_xinit;
       left_spad_y = left_yinit;
       ax = 0;
       ay = 0;
     }
+    */
     
   }  
   return super.surfaceTouchEvent(me);

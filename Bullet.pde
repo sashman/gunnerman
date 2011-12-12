@@ -7,7 +7,7 @@ class Bullet extends GameObject{
  int speed = 10;
  
  public Bullet(int x, int y, float x_dir, float y_dir, GameMap m, int type){
-   
+   //this.coltype = "bullet";
    this.x = x;
    this.y = y;
    this.x_dir = x_dir;
@@ -31,11 +31,15 @@ class Bullet extends GameObject{
    if(type == 0){
      x+=(int)(this.x_dir*speed);
      y+=(int)(this.y_dir*speed);
-     int c;
-     if((c = check_collision(true))!=-999){
+     Collision c = check_collision(true);
+     if(c.value !=-999){
        alive = false;
        x = -100;
        y = -100;
+       if(c.type == "player"){
+         GameObject colobj = c.o;
+         colobj.loseLife();
+       }
      }
    }
    
