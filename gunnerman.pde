@@ -27,7 +27,7 @@ int left_dx,right_dx; //actual distance from the centre of the analog stick
 
 boolean l_press = false;
 boolean r_press = false;
-boolean fired = false;
+boolean fired = true;
 
 Player player;
 ArrayList<Player> opponents;
@@ -71,11 +71,16 @@ void draw() {
   
   //UPDATES
   if (mousePressed) {
-    if(!l_press && r_press){
+    if(!l_press){
       left_spad_x = left_xinit;
       left_spad_y = left_yinit;
       ax = 0;
       ay = 0; 
+    }
+    
+    if(!r_press && !fired){
+      player.fire();
+      fired = true;
     }
     
   } else {
@@ -83,6 +88,10 @@ void draw() {
       left_spad_y = left_yinit;
       ax = 0;
       ay = 0;
+      if(!fired){
+        player.fire();
+        fired = true;
+      }
   }
   
   player.moveXY(ax,ay);
@@ -108,7 +117,7 @@ void draw() {
 
 
 public void draw_controls(){
-  fill(255);
+  fill(255,255,255,100);
   ellipse((pad_size/1.5), height-(pad_size/1.5), pad_size,pad_size);
   ellipse(width-(pad_size/1.5), height-(pad_size/1.5), pad_size,pad_size);
   ellipse(left_spad_x, left_spad_y, subpad_size,subpad_size);
@@ -152,7 +161,7 @@ public boolean surfaceTouchEvent(MotionEvent me) {
          right_spad_x = x;
          right_spad_y = y;
          player.dir = atan2(x-right_xinit,y-right_yinit);
-         player.fire();
+         fired = false;
       }
     }
     
