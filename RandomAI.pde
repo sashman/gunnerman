@@ -3,12 +3,13 @@ class RandomAI implements PlayerControl{
   //movement
  int dir_choice_count = 0;
  int dir_choice_change = 1000;
- int acc_range = 5;
+ int acc_range = 3;
  
  int r_ax = 0;
  int r_ay = 0;
  
  //aiming and shooting
+ Player target;
  int fire_count = 0;
  int fire_change = 2500;
  
@@ -17,6 +18,7 @@ class RandomAI implements PlayerControl{
  public RandomAI(){
    dir_choice_count = millis(); 
    fire_count = millis();
+   
  }
  
  public void update(Player p){
@@ -36,9 +38,11 @@ class RandomAI implements PlayerControl{
    
    //firing
    if(millis() - fire_count > fire_change){
+     target = p.m.players.get((int)random(0, p.m.players.size()));
+     while(target.x == p.x && target.y == p.y) target = p.m.players.get((int)random(0, p.m.players.size()));
      fire_count = millis();
-     
-     
+     p.dir = atan2(target.x-p.x,target.y-p.y)+random(-0.3,0.3);
+     p.fire();
      
    } else {
 
@@ -47,7 +51,9 @@ class RandomAI implements PlayerControl{
  }
  
  private void setAim(Player p){
-   Player target = p.m.players.get((int)random(0, p.m.players.size()));
+   
+   if(target!=null)
+     p.dir = atan2(target.x-p.x,target.y-p.y);
    
  }
 

@@ -163,7 +163,11 @@ class GameMap {
   }
   
   public void renderBullets(){
-   for(int i = 0; i < bullets.size(); i++) bullets.get(i).render();
+   for(int i = 0; i < bullets.size(); i++){
+
+     bullets.get(i).render();
+     if(!bullets.get(i).alive) bullets.remove(i);
+   }
   }
   
   
@@ -190,6 +194,7 @@ class GameMap {
     int i2 = (int)(((float)(x+w)/(float)sizeX) * cell_w);
     int j2 = (int)(((float)(y+h)/(float)sizeY) * cell_h);
     LinkedList<LinkedList<GameObject>> cellList = new LinkedList();
+    try{    
     for(int i = i1; i<=i2; i++){
       for(int j = j1; j<=j2; j++){
         
@@ -197,6 +202,9 @@ class GameMap {
           cellList.add(cells[i][j]);
         }
       }
+    }
+    } catch (ArrayIndexOutOfBoundsException e){
+      println("ArrayIndexOutOfBoundsException: " + e.getMessage() + " i1 " + i1 + " j1 " + j1 + " i2 " + i2 + " j2 " +j2 + " x " + x + " y " + y);
     }
     return cellList;
   }

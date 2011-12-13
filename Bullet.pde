@@ -19,7 +19,10 @@ class Bullet extends GameObject{
    this.height = 2;
    this.width = 2;
    
-   this.alive = true;
+
+   
+   if(x+2 > m.sizeX || x< 0 || y+2 > m.sizeY || y < 0) this.alive = false;
+   else this.alive = true;
    
  }
  
@@ -31,6 +34,12 @@ class Bullet extends GameObject{
    if(type == 0){
      x+=(int)(this.x_dir*speed);
      y+=(int)(this.y_dir*speed);
+     
+     if(x+2 > m.sizeX || x< 0 || y+2 > m.sizeY || y < 0){
+       alive = false;
+       x = -100;
+       y = -100;
+     }
      Collision c = check_collision(true);
      if(c.value !=-999){
        alive = false;

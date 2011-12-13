@@ -86,6 +86,7 @@ void draw() {
   }
   
   player.moveXY(ax,ay);
+
   player.update();
   
   for(int i=0; i<opponents.size(); i++) opponents.get(i).update();

@@ -5,7 +5,7 @@ class Player extends GameObject{
   int sc_y;
   
   int size = 20;
-  float dir = 0;
+  public float dir = 0;
   int point_size = 20;
   
   int speed_cap = 5;
@@ -150,6 +150,8 @@ class Player extends GameObject{
   
   public void update(){
     
+    if(!alive) return;
+    
     dx+=ax;
     dy+=ay;
     
@@ -164,7 +166,7 @@ class Player extends GameObject{
       }
     }   
     
-    if(pc!=null && alive){
+    if(pc!=null){
       pc.update(this);
     }
    
@@ -200,6 +202,8 @@ class Player extends GameObject{
     }
     
     if(alive){
+      if(pc==null) fill(255);
+      else fill(127);
       line(sc_x,sc_y,cos(-dir+(3.14/2))*point_size+sc_x, sin(-dir+(3.14/2))*point_size+sc_y);
       ellipse(sc_x, sc_y, size,size);
     } else {
