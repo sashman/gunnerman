@@ -2,6 +2,15 @@
 
 import android.view.*;
 
+//game states
+int current_state;
+int START_STATE = 0;
+int CONNECT_STATE = 1;
+int LOBBY_STATE = 2;
+int GAME_STATE = 3;
+int SCORE_SCREEN = 4;
+
+
 int pad_size = 150;
 int subpad_size = 50;
 int left_spad_x;

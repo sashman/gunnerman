@@ -125,10 +125,16 @@ class GameMap {
     if(p.relevant_cells.size()>0 && p.relevant_cells.getFirst()[0] == i1 && p.relevant_cells.getFirst()[1] == j1 &&
                                     p.relevant_cells.getLast()[0] == i2 && p.relevant_cells.getLast()[1] == j2) return;
                                     else{
+                                      while(p.relevant_cells.size()>0){
+                                        int[] c = p.relevant_cells.removeFirst();
+                                        cells[c[0]][c[1]].remove(p);
+                                      }
+                                      /*
                                       for(int i = 0; i<p.relevant_cells.size(); i++){
                                         cells[p.relevant_cells.get(i)[0]][p.relevant_cells.get(i)[1]].remove(p);
                                       }
-                                      p.relevant_cells = new LinkedList<int[]>();
+                                      */
+                                      //p.relevant_cells = new LinkedList<int[]>();
                                     }
     
 

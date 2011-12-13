@@ -224,7 +224,7 @@ class Player extends GameObject{
 
          rect(50,30, 40, 10);
          fill(255);
-         if(fired)
+         if(fired && alive)
            rect(50,30, (float)(millis()-fire_count)/(float)pistol_delay * 40, 10);
          else rect(50,30, 40, 10);
          break;
