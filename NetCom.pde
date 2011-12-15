@@ -5,7 +5,8 @@ import java.io.PrintStream;
 class NetCom  implements NetListener {
   
   GameLoop gl;
-  TcpClient myClient; 
+  TcpClient myClient;
+  UdpClient udpClient;
   int dataIn;
   PrintStream out;
   
@@ -20,6 +21,7 @@ class NetCom  implements NetListener {
     if(a.isvalid()){
     
       myClient = new TcpClient(this, ip, port);
+      udpClient = new UdpClient(ip, port+1);
       try{
         out = new PrintStream(myClient.socket().getOutputStream());
       }catch (IOException e){

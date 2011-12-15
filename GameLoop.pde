@@ -169,6 +169,38 @@ class GameLoop{
       
       break;
       case GAME_STATE:
+        if(game_map==null) break;
+      
+        if (mousePressed) {
+          if(!l_press){
+            left_spad_x = left_xinit;
+            left_spad_y = left_yinit;
+            ax = 0;
+            ay = 0; 
+          }
+          
+          if(!r_press && !fired){
+            player.fire();
+            fired = true;
+          }
+          
+        } else {
+            left_spad_x = left_xinit;
+            left_spad_y = left_yinit;
+            ax = 0;
+            ay = 0;
+            if(!fired){
+              player.fire();
+              fired = true;
+            }
+        }
+        
+        player.moveXY(ax,ay);
+      
+        player.update();
+        
+        for(int i=0; i<opponents.size(); i++) opponents.get(i).update();
+        game_map.update();
       
       
       break;
@@ -263,8 +295,20 @@ class GameLoop{
       
       break;
       case GAME_STATE:
-        fill(245);
-        background(50);
+        if(game_map==null) break;
+
+        background(245); 
+        stroke(0);
+        
+        player.render();
+        for(int k=0; k<opponents.size(); k++) opponents.get(k).render();
+        game_map.render();
+        draw_controls();
+        
+        textFont(font,10);
+        fill(0);
+        text("FPS " + int(frameRate),10,10);
+        player.renderHUD();
       
       /*
       player.render();
@@ -360,7 +404,7 @@ class GameLoop{
       
       break;
       case GAME_STATE:
-      
+      if(game_map==null) break;
       
       //game state
         boolean reset_left = true;
@@ -420,9 +464,23 @@ class GameLoop{
     player = new Player(game_map.sizeX/2, game_map.sizeY/2, game_map, null);
     game_map.add_to_collision_cells(player);
     opponents = new ArrayList<Player>();
-    opponents.add(new Player(game_map.sizeX/2, game_map.sizeY/2+50, game_map, new RandomAI()));
-    for(int i = 0; i < opponents.size(); i++)
-      game_map.add_to_collision_cells(opponents.get(i));
+    
+    int j = 1;
+    Iterator i = lobbymembers.entrySet().iterator();  // Get an iterator
+    while (i.hasNext()) {
+
+      Map.Entry me = (Map.Entry)i.next();
+      if((Integer)me.getKey() == self_id) continue;
+      //opponents.add(new Player(game_map.sizeX/2, game_map.sizeY/2+50, game_map, new RandomAI()));
+      Player player = new Player(game_map.sizeX/2, game_map.sizeY/2+(50*j), game_map, new RemotePlayer());
+      player.net_id = (Integer)me.getKey();
+      opponents.add(player);
+      j++;
+    }
+    
+    
+    for(int k = 0; k < opponents.size(); k++)
+      game_map.add_to_collision_cells(opponents.get(k));
     
     left_xinit = (int)(pad_size/1.5);
     left_yinit = height-(int)(pad_size/1.5);
@@ -481,7 +539,7 @@ class GameLoop{
       
       println("Game started");
       change_to_state = GAME_STATE;
-      //init_game();
+      init_game();
       
       
     } else println("Unknown message type " + type);

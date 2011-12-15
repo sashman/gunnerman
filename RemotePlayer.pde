@@ -1,6 +1,6 @@
 class RemotePlayer implements PlayerControl{
 
- public RandomAI(){
+ public RemotePlayer(){
  }
 
  public void update(Player p){

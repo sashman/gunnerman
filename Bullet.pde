@@ -62,6 +62,8 @@ class Bullet extends GameObject{
      
      if(type==0){
        //println("sc_x " + sc_x + " sc_y " + sc_y );
+       fill(0);
+       stroke(0);
        ellipse(sc_x, sc_y, this.height,this.width);
      }
    }
