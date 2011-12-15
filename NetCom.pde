@@ -1,21 +1,30 @@
 import oscP5.*;
 import netP5.*;
+import java.io.PrintStream;
 
 class NetCom  implements NetListener {
   
+  GameLoop gl;
   TcpClient myClient; 
-  int dataIn; 
+  int dataIn;
+  PrintStream out;
   
   
-  public NetCom(String ip, int port) throws Exception {
+  public NetCom(GameLoop gl, String ip, int port) throws Exception {
     
     if(ip == "") throw new Exception("Empty address");
+    this.gl = gl;
     
     NetAddress a = new NetAddress(ip,port);
     
     if(a.isvalid()){
     
       myClient = new TcpClient(this, ip, port);
+      try{
+        out = new PrintStream(myClient.socket().getOutputStream());
+      }catch (IOException e){
+        
+      }
       
     } else {
       throw new Exception(ip + " address not found"); 
@@ -27,11 +36,24 @@ class NetCom  implements NetListener {
   }
   
   void netStatus(NetStatus theStatus){
-    println("net status"); 
+    println("NetStatus:" + theStatus); 
   }
   
   void netEvent(NetMessage msg){
-    println("sdfsdsvd");
+    println(">>" + msg.getString());
+    gl.resolveMessage(msg.getString());
   }
   
+  public void send(String msg){
+    
+    //try{
+      
+      
+      println("sending: " + msg);
+      //out.println(msg);
+      myClient.send(msg+"\n");
+    //}catch (IOException e){
+    //  println("IOException: " + e.getMessage());
+    //}
+  }
 }

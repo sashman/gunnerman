@@ -1,4 +1,5 @@
 import apwidgets.*;
+import java.util.*;
 
 class GameLoop{
   
@@ -26,7 +27,7 @@ class GameLoop{
   int join_x = 20;
   int join_width = 70;
   int join_y;
-  int join_height = 36;
+  int join_height = 50;
   
   //join screen
   APWidgetContainer widgetContainer; 
@@ -40,7 +41,23 @@ class GameLoop{
   int no_connect_count;
   int no_connect_max = 2000;
   
+  //lobby
   NetCom netcom;
+  int self_id = -1;
+  int player_count = 0;
+  HashMap lobbymembers = new HashMap();
+  
+  int ready_x = 20;
+  int ready_width = 100;
+  int ready_y;
+  int ready_height = 50;
+  
+  boolean ready_press = false;
+  int ready_sent_count;
+  int ready_sent_max = 500;
+  
+  int game_start_count = -1;
+  int game_start_max;
   
   
   
@@ -92,6 +109,9 @@ class GameLoop{
     connect_x = width/2;
     connect_y = height/2 + 105;
     
+    //lobby
+    ready_y = height - 70;
+    
   }
   
   //must return state
@@ -116,7 +136,7 @@ class GameLoop{
           connect_press = false;
           println("CONNECT");
           try{
-            netcom = new NetCom(ipField.getText(),55555);
+            netcom = new NetCom(this, ipField.getText(),55555);
             state = LOBBY_STATE;
           } catch (Exception e){
             println(e.getMessage());
@@ -128,6 +148,23 @@ class GameLoop{
       
       break;
       case LOBBY_STATE:
+      
+      if(!mousePressed){
+        
+        if(ready_press){
+          ready_press = false;
+          if(millis() - ready_sent_count > ready_sent_max){
+            ready_sent_count = millis();
+            try{
+              println("READY");
+              netcom.send("ready");
+            } catch (Exception e){
+              println(e.getMessage());
+            }
+          }
+        }
+      }
+      
       
       
       break;
@@ -188,14 +225,58 @@ class GameLoop{
       
       break;
       case LOBBY_STATE:
+        widgetContainer.hide();
+      
         background(50);
         fill(245);
         textFont(font,42);
-        text("Lobby" , connect_x - 40, connect_y - 55);
+        text("Lobby" , 40, 50);
+        if(self_id>-1){
+          textFont(font,14);
+          text("Your id: " + self_id, 40, 80);
+        }
+        
+        textFont(font, 36);
+        text("Ready", ready_x, ready_y, ready_width, ready_height);
+        
+        if(game_start_count > -1){
+          if(millis() - game_start_count < game_start_max){
+            textFont(font, 36);
+            text("Starting game", 40, 120);
+            fill(255);
+            arc(300, 100, 40,40, 0, (float)(millis() - game_start_count)/(float)game_start_max * TWO_PI);
+            
+          } else game_start_count = -1;
+        }
+        
+        int j = 0;
+        Iterator i = lobbymembers.entrySet().iterator();  // Get an iterator
+        while (i.hasNext()) {
+          Map.Entry me = (Map.Entry)i.next();
+          textFont(font,36);
+          String r = (Boolean)me.getValue() ? " is ready" : " is not ready";
+          text("Player " + me.getKey() +  r, width/2, j*36  +40);
+          
+          j++;
+        }
       
       
       break;
       case GAME_STATE:
+        fill(245);
+        background(50);
+      
+      /*
+      player.render();
+      for(int i=0; i<opponents.size(); i++) opponents.get(i).render();
+      game_map.render();
+      draw_controls();
+      
+      textFont(font,10);
+      fill(0);
+      text("FPS " + int(frameRate),10,10);
+      player.renderHUD();
+      */
       
       
       break;
@@ -233,7 +314,9 @@ class GameLoop{
             println("JOIN");
             change_to_state = CONNECT_STATE;
             //join
+
             widgetContainer = new APWidgetContainer(top_level); //create new container for widgets
+            widgetContainer.show();
             ipField = new APEditText(width/2, height/2, 150, 75); //create a textfield from x- and y-pos., width and height
             widgetContainer.addWidget(ipField); //place textField in container
           }
@@ -260,6 +343,19 @@ class GameLoop{
       
       break;
       case LOBBY_STATE:
+      
+        if(me.getPointerCount()>0){
+          int x = (int)me.getX(0);
+          int y = (int)me.getY(0);
+          
+          //click connect
+          
+          if(x > ready_x && x < ready_x + ready_width &&
+            y > ready_y && y < ready_y + ready_height){
+              ready_press = true;
+            }
+          
+        }
       
       
       break;
@@ -317,8 +413,79 @@ class GameLoop{
       break;
     }
     
+  }
+  
+  private void init_game(){
+    game_map = new GameMap("map0");
+    player = new Player(game_map.sizeX/2, game_map.sizeY/2, game_map, null);
+    game_map.add_to_collision_cells(player);
+    opponents = new ArrayList<Player>();
+    opponents.add(new Player(game_map.sizeX/2, game_map.sizeY/2+50, game_map, new RandomAI()));
+    for(int i = 0; i < opponents.size(); i++)
+      game_map.add_to_collision_cells(opponents.get(i));
     
+    left_xinit = (int)(pad_size/1.5);
+    left_yinit = height-(int)(pad_size/1.5);
+    right_xinit = width-(int)(pad_size/1.5);
+    right_yinit = height-(int)(pad_size/1.5);
     
-  } 
+    left_spad_x = left_xinit;
+    left_spad_y = left_yinit;
+    right_spad_x = right_xinit;
+    right_spad_y = right_yinit;
+    
+    outer_t_dx = (pad_size);
+    inner_t_dx = (pad_size/2);
+    
+    rst = (pad_size/4);
+    
+  }
+  
+  
+  synchronized public void resolveMessage(String msg){
+    Scanner sc = new Scanner(msg);
+    if(!sc.hasNext()){
+      println("Empty message");
+      return;
+    }
+    
+    String type=sc.next();
+    if(type.equals("joined")){
+        int id = sc.nextInt();
+      
+        println("Joined the lobby with id " + id);
+        self_id = id;
+    } else if(type.equals("playerjoined")){
+       int id = sc.nextInt();
+       String ready_string = sc.next();
+       boolean ready = ready_string.equals("true") ? true : false;
+       
+       println("Player joined with id " + id + " ready status " + ready);
+       lobbymembers.put(id, ready);
+       
+    } else if(type.equals("playerready")){
+      int id = sc.nextInt();
+      
+      println("Player " + id + " sent ready");
+      boolean r = (Boolean)lobbymembers.get(id) ? false : true;
+      lobbymembers.put(id, r);
+      
+    } else if(type.equals("gamestarting")){
+      int start_delay = sc.nextInt();
+      game_start_count = millis();
+      game_start_max = start_delay*1000;
+      
+      println("Game starting in " + start_delay);
+      
+    } else if(type.equals("gamestart")){
+      
+      println("Game started");
+      change_to_state = GAME_STATE;
+      //init_game();
+      
+      
+    } else println("Unknown message type " + type);
+    
+  }
   
 }

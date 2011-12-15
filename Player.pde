@@ -1,6 +1,10 @@
 class Player extends GameObject{
   boolean show_coords = true;
   
+  //net related
+  int net_id = -1;
+  boolean ready = false;
+  
   int sc_x;
   int sc_y;
   
