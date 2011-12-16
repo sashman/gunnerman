@@ -197,6 +197,7 @@ class GameLoop{
             ay = 0;
             if(!fired){
               player.fire();
+              netcom.udp_send("fire " + player.x + " " + player.y + " " + player.dir);
               fired = true;
             }
         }
@@ -212,7 +213,7 @@ class GameLoop{
         
         if(millis() - packet_delay_count > packet_delay_max){
           packet_delay_count = millis();
-          netcom.udp_send("pos " + player.x + " " + player.y + " " + player.ax + " " + player.ay + " " + player.dir);//Math.round(player.dir*100.0) / 100.0);
+          netcom.udp_send("pos " + player.x + " " + player.y + " " + player.ax + " " + player.ay + " " + Math.round(player.dir*100.0) / 100.0);
         }
         
       
@@ -576,6 +577,18 @@ class GameLoop{
         rp.setPos(x,y,dx,dy,dir);
       }
       
+    } else if(type.equals("playerfire")){
+      int id = sc.nextInt();
+      int x = sc.nextInt();
+      int y = sc.nextInt();
+      float dir = sc.nextFloat();
+      
+      println("Got new fire");
+      if(id == self_id) println("About myself");
+      else{
+        RemotePlayer rp = (RemotePlayer)netControllers.get(id);
+        rp.fire(x,y,dir);
+      }
       
     } else println("Unknown message type " + type);
     

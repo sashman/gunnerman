@@ -9,6 +9,7 @@ class RemotePlayer implements PlayerControl{
   int dx;
   int dy;
   float dir;
+  boolean fire = false;
   
  public RemotePlayer(int packet_delay){
    this.packet_delay = packet_delay;
@@ -23,6 +24,13 @@ class RemotePlayer implements PlayerControl{
    this.dy = dy;
    this.dir = dir;
  }
+ 
+ public void fire(int x, int y, float dir){
+   fire = true;
+   this.x = x;
+   this.y = y;
+   this.dir = dir;
+ }
 
  public void update(Player p){
    if(motion_count > 0 && millis()- motion_count < packet_delay){
@@ -33,8 +41,16 @@ class RemotePlayer implements PlayerControl{
          p.dir = dir;
      }
      p.moveXY(dx,dy);
+   }
+   if(fire){
+     fire = false;
+     p.x = x;
+     p.y = y;
+     p.dir = dir;
+     p.fire();
      
    }
+   
  } 
   
 }
