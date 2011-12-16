@@ -194,8 +194,13 @@ class Player extends GameObject{
   }
   
   public void loseLife(){
+    if(!alive) return;
+    
     lives--;
-    if(lives<1) alive = false;
+    if(lives<1){
+      alive = false;
+      m.player_count--;
+    }
   }
   
   public void render(){
