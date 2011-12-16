@@ -293,7 +293,7 @@ class GameLoop{
           netcom.udp_send("pos " + player.x + " " + player.y + " " + player.ax + " " + player.ay + " " + Math.round(player.dir*100.0) / 100.0);
         }
         
-        if(game_map.player_count == 1){
+        if(!game_finished && game_map.player_count == 1){
           game_over_count = millis(); //state = SCORE_STATE;
           game_finished = true;
           println("GAME OVER");
