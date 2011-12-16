@@ -18,6 +18,7 @@ class GameMap {
   private ArrayList<Wall> walls = new ArrayList<Wall>();
   private ArrayList<Bullet> bullets = new ArrayList<Bullet>();
   public ArrayList<Player> players = new ArrayList<Player>();
+  int player_count = -1;
 
   int cell_w = 4;  
   int cell_h = 4;

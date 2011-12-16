@@ -8,11 +8,14 @@ class GameLoop{
   //game states
   final int START_STATE = 0;
   final int CONNECT_STATE = 1;
+  final int AI_SELECT_STATE = 6;
   final int LOBBY_STATE = 2;
   final int GAME_STATE = 3;
   final int SCORE_STATE = 4;
   
   int change_to_state = -1;
+  
+  boolean multiplayer =false;
   
   int width;
   int height;
@@ -29,17 +32,48 @@ class GameLoop{
   int join_y;
   int join_height = 50;
   
+  int vsai_x = 20;
+  int vsai_width = 70;
+  int vsai_y;
+  int vsai_height = 50;
+  
   //join screen
   APWidgetContainer widgetContainer; 
   APEditText ipField;
   
-  int connect_x;
+  int connect_x = 20;
   int connect_y;
   int connect_width = 150;
   int connect_height = 36;
   
   int no_connect_count;
   int no_connect_max = 2000;
+  
+  //ai_select
+  int ai_count = 1;
+  int ai_min = 1;
+  int ai_max = 3;
+  
+  int ai_count_display_x;
+  int ai_count_display_y;
+  
+  int ai_count_up_x;
+  int ai_count_up_y;
+  int ai_count_down_x;
+  int ai_count_down_y;
+  
+  int ai_count_width = 50;
+  int ai_count_height = 50;
+  
+  int start_x = 20;
+  int start_y;
+  int start_width = 100;
+  int start_height = 50;
+  
+  boolean ai_count_up_press = false;
+  boolean ai_count_down_press = false;
+  boolean start_press = false;
+  
   
   //lobby
   NetCom netcom;
@@ -98,6 +132,12 @@ class GameLoop{
   Player player;
   ArrayList<Player> opponents;
   GameMap game_map;
+  
+  
+  //score
+  boolean game_finished = false;
+  int game_over_count = -1;
+  int game_over_max = 1500;
 
   PFont font = createFont("Arial Bold",48);
   
@@ -109,6 +149,20 @@ class GameLoop{
     //title
     title_delay = millis();
     join_y = height - 54;
+    
+    vsai_y = height - 100;
+    
+    //ai_select
+    start_y = height - 70;
+    
+    ai_count_display_x = width/2;
+    ai_count_display_y = height/2;
+    
+    ai_count_up_x = width/2 + 50;
+    ai_count_up_y = height/2;
+    
+    ai_count_down_x = width/2 - 75;
+    ai_count_down_y = height/2;
     
     //connect
     connect_x = width/2;
@@ -149,6 +203,29 @@ class GameLoop{
           }
         }
       }
+      
+      break;
+      case AI_SELECT_STATE:
+      
+      
+      if(!mousePressed){
+        
+        if(ai_count_down_press){
+          ai_count_down_press = false;
+          ai_count--;
+          ai_count = constrain(ai_count, ai_min, ai_max);
+          
+        }
+        
+        if(ai_count_up_press){
+          ai_count_up_press = false;
+          ai_count++;
+          ai_count = constrain(ai_count, ai_min, ai_max);
+          
+        }
+
+      }
+      
       
       
       break;
@@ -197,7 +274,7 @@ class GameLoop{
             ay = 0;
             if(!fired){
               player.fire();
-              netcom.udp_send("fire " + player.x + " " + player.y + " " + player.dir);
+              if(multiplayer) netcom.udp_send("fire " + player.x + " " + player.y + " " + player.dir);
               fired = true;
             }
         }
@@ -211,15 +288,24 @@ class GameLoop{
         game_map.update();
         
         
-        if(millis() - packet_delay_count > packet_delay_max){
+        if(multiplayer && millis() - packet_delay_count > packet_delay_max){
           packet_delay_count = millis();
           netcom.udp_send("pos " + player.x + " " + player.y + " " + player.ax + " " + player.ay + " " + Math.round(player.dir*100.0) / 100.0);
         }
         
-      
+        if(game_map.player_count == 1){
+          game_over_count = millis(); //state = SCORE_STATE;
+          game_finished = true;
+          println("GAME OVER");
+        }
+        
+        if(game_over_count>-1 && millis() - game_over_count > game_over_max){
+          state = SCORE_STATE;
+        }
       
       break;
       case SCORE_STATE:
+      
       
       
       break;
@@ -244,7 +330,34 @@ class GameLoop{
         //draw join button
         fill(245);
         textFont(font,36);
+        text("vsAI", vsai_x, vsai_y, join_width, join_height);
+        
+        //draw vs ai button
+        fill(245);
+        textFont(font,36);
         text("join", 20, height - 36 - 10, join_width, join_height);
+        
+      break;
+      case AI_SELECT_STATE:
+        background(50);
+        fill(245);
+        textFont(font,36);
+        text("Select number of enemies" , 40, 50);
+        
+        text(ai_count, ai_count_display_x, ai_count_display_y+36);
+        
+        triangle(ai_count_down_x, (ai_count_down_y+ai_count_height/2),
+                 ai_count_down_x + ai_count_width , ai_count_down_y,
+                 ai_count_down_x + ai_count_width , ai_count_down_y + ai_count_height
+                );
+        triangle(ai_count_up_x+ ai_count_width, (ai_count_up_y+ai_count_height/2),
+                 ai_count_up_x , ai_count_up_y,
+                 ai_count_up_x , ai_count_up_y + ai_count_height
+                );
+        
+        
+        
+        text("Start", start_x, start_y, start_width, start_height);
       
       
       break;
@@ -340,6 +453,20 @@ class GameLoop{
       
       break;
       case SCORE_STATE:
+        background(50);
+        
+        fill(245);
+        textFont(font,42);
+        text("Game over" , 40, 50);
+        if(player.alive)
+          text("You win" , 40, 100);
+        else{
+          for(int k = 0; k<opponents.size(); k++) {
+            if(opponents.get(k).alive){
+              text("Player " + (k+1) + " wins" , 40, 100);
+            }
+          }
+        }
       
       
       break;
@@ -372,6 +499,7 @@ class GameLoop{
             
             println("JOIN");
             change_to_state = CONNECT_STATE;
+            multiplayer =true;
             //join
 
             widgetContainer = new APWidgetContainer(top_level); //create new container for widgets
@@ -379,7 +507,45 @@ class GameLoop{
             ipField = new APEditText(width/2, height/2, 150, 75); //create a textfield from x- and y-pos., width and height
             widgetContainer.addWidget(ipField); //place textField in container
           }
+          
+          //click join
+        if(x > vsai_x && x < vsai_x + vsai_width &&
+          y > vsai_y && y < vsai_y + vsai_height){
+            
+            println("vsAI");
+            change_to_state = AI_SELECT_STATE;
+            multiplayer = false;
+
+          }
         
+      }
+      
+      break;
+      case AI_SELECT_STATE:
+      
+      if(me.getPointerCount()>0){
+        int x = (int)me.getX(0);
+        int y = (int)me.getY(0);
+        
+        //click up
+        if(x > ai_count_up_x && x < ai_count_up_x + ai_count_width &&
+          y > ai_count_up_y && y < ai_count_up_y + ai_count_width){
+            ai_count_up_press = true;
+          }
+          
+        //click down
+        if(x > ai_count_down_x && x < ai_count_down_x + ai_count_width &&
+          y > ai_count_down_y && y < ai_count_down_y + ai_count_width){
+            ai_count_down_press = true;
+          }
+       
+         if(x > start_x && x < start_x + start_width &&
+          y > start_y && y < start_y + start_width){
+             println("Game started");
+            change_to_state = GAME_STATE;
+            
+            init_game();
+          }    
       }
       
       
@@ -480,20 +646,30 @@ class GameLoop{
     game_map.add_to_collision_cells(player);
     opponents = new ArrayList<Player>();
     
-    int j = 1;
-    Iterator i = lobbymembers.entrySet().iterator();  // Get an iterator
-    while (i.hasNext()) {
-
-      Map.Entry me = (Map.Entry)i.next();
-      if((Integer)me.getKey() == self_id) continue;
-      //opponents.add(new Player(game_map.sizeX/2, game_map.sizeY/2+50, game_map, new RandomAI()));
-      RemotePlayer rp = new RemotePlayer(packet_delay_max);
-      Player player = new Player(game_map.sizeX/2, game_map.sizeY/2+(50*j), game_map, rp);
-      player.net_id = (Integer)me.getKey();
-      opponents.add(player);
-      netControllers.put(player.net_id, rp);
-      j++;
+    if(multiplayer){
+      int j = 1;
+      Iterator i = lobbymembers.entrySet().iterator();  // Get an iterator
+      while (i.hasNext()) {
+  
+        Map.Entry me = (Map.Entry)i.next();
+        if((Integer)me.getKey() == self_id) continue;
+        //opponents.add(new Player(game_map.sizeX/2, game_map.sizeY/2+50, game_map, new RandomAI()));
+        RemotePlayer rp = new RemotePlayer(packet_delay_max);
+        Player player = new Player(game_map.sizeX/2, game_map.sizeY/2+(50*j), game_map, rp);
+        player.net_id = (Integer)me.getKey();
+        opponents.add(player);
+        netControllers.put(player.net_id, rp);
+        j++;
+      }
+    } else {
+      for(int i = 0; i < ai_count; i++){
+        
+        Player player = new Player(game_map.sizeX/2, game_map.sizeY/2+(50*(i+1)), game_map, new RandomAI());
+        opponents.add(player);
+      }
     }
+    
+    game_map.player_count = opponents.size()+1;
     
     
     for(int k = 0; k < opponents.size(); k++)
@@ -514,8 +690,8 @@ class GameLoop{
     
     rst = (pad_size/4);
     
-    
-    packet_delay_count = millis();
+    if(!multiplayer)
+     packet_delay_count = millis();
   }
   
   

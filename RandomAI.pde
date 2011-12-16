@@ -39,7 +39,8 @@ class RandomAI implements PlayerControl{
    //firing
    if(millis() - fire_count > fire_change){
      target = p.m.players.get((int)random(0, p.m.players.size()));
-     while(target.x == p.x && target.y == p.y) target = p.m.players.get((int)random(0, p.m.players.size()));
+     while(target.x == p.x && target.y == p.y || !target.alive)
+       target = p.m.players.get((int)random(0, p.m.players.size()));
      fire_count = millis();
      p.dir = atan2(target.x-p.x,target.y-p.y)+random(-0.3,0.3);
      p.fire();
