@@ -180,6 +180,7 @@ class Player extends GameObject{
    
    if(!fired){
      fired=true;
+     
      launch_bullet();
      if(weapon==0) fire_count = millis();
    }

@@ -58,9 +58,14 @@ class GameLoop{
   
   int game_start_count = -1;
   int game_start_max;
+  HashMap netControllers = new HashMap();
   
   
+  //delay for movement packets
+  int packet_delay_count;
+  int packet_delay_max = 250;
   
+  //game state
   int pad_size = 150;
   int subpad_size = 50;
   int left_spad_x;
@@ -169,7 +174,7 @@ class GameLoop{
       
       break;
       case GAME_STATE:
-        if(game_map==null) break;
+        if(game_map==null || player == null) break;
       
         if (mousePressed) {
           if(!l_press){
@@ -181,6 +186,7 @@ class GameLoop{
           
           if(!r_press && !fired){
             player.fire();
+            
             fired = true;
           }
           
@@ -199,8 +205,16 @@ class GameLoop{
       
         player.update();
         
+        
         for(int i=0; i<opponents.size(); i++) opponents.get(i).update();
         game_map.update();
+        
+        
+        if(millis() - packet_delay_count > packet_delay_max){
+          packet_delay_count = millis();
+          netcom.udp_send("pos " + player.x + " " + player.y + " " + player.ax + " " + player.ay + " " + player.dir);//Math.round(player.dir*100.0) / 100.0);
+        }
+        
       
       
       break;
@@ -295,7 +309,7 @@ class GameLoop{
       
       break;
       case GAME_STATE:
-        if(game_map==null) break;
+        if(game_map==null || player==null) break;
 
         background(245); 
         stroke(0);
@@ -472,9 +486,11 @@ class GameLoop{
       Map.Entry me = (Map.Entry)i.next();
       if((Integer)me.getKey() == self_id) continue;
       //opponents.add(new Player(game_map.sizeX/2, game_map.sizeY/2+50, game_map, new RandomAI()));
-      Player player = new Player(game_map.sizeX/2, game_map.sizeY/2+(50*j), game_map, new RemotePlayer());
+      RemotePlayer rp = new RemotePlayer(packet_delay_max);
+      Player player = new Player(game_map.sizeX/2, game_map.sizeY/2+(50*j), game_map, rp);
       player.net_id = (Integer)me.getKey();
       opponents.add(player);
+      netControllers.put(player.net_id, rp);
       j++;
     }
     
@@ -497,6 +513,8 @@ class GameLoop{
     
     rst = (pad_size/4);
     
+    
+    packet_delay_count = millis();
   }
   
   
@@ -539,7 +557,24 @@ class GameLoop{
       
       println("Game started");
       change_to_state = GAME_STATE;
+      
       init_game();
+      netcom.change_to_gamestate();
+      
+    } else if(type.equals("playerpos")){
+      int id = sc.nextInt();
+      int x = sc.nextInt();
+      int y = sc.nextInt();
+      int dx = sc.nextInt();
+      int dy = sc.nextInt();
+      float dir = sc.nextFloat();
+      
+      println("Got new position");
+      if(id == self_id) println("About myself");
+      else{
+        RemotePlayer rp = (RemotePlayer)netControllers.get(id);
+        rp.setPos(x,y,dx,dy,dir);
+      }
       
       
     } else println("Unknown message type " + type);

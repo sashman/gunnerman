@@ -2,16 +2,24 @@ import oscP5.*;
 import netP5.*;
 import java.io.PrintStream;
 
+
 class NetCom  implements NetListener {
   
   GameLoop gl;
   TcpClient myClient;
   UdpClient udpClient;
+  UdpServer udpServer;
   int dataIn;
   PrintStream out;
+  String ip;
+  int port;
+  
   
   
   public NetCom(GameLoop gl, String ip, int port) throws Exception {
+    this.ip = ip;
+    this.port = port;
+    
     
     if(ip == "") throw new Exception("Empty address");
     this.gl = gl;
@@ -21,7 +29,7 @@ class NetCom  implements NetListener {
     if(a.isvalid()){
     
       myClient = new TcpClient(this, ip, port);
-      udpClient = new UdpClient(ip, port+1);
+      
       try{
         out = new PrintStream(myClient.socket().getOutputStream());
       }catch (IOException e){
@@ -33,8 +41,11 @@ class NetCom  implements NetListener {
     }
   }
   
-  public void quit(){
-    myClient.dispose(); 
+  public void change_to_gamestate(){
+    //myClient.dispose(); 
+    udpClient = new UdpClient(ip, port+1);
+    udpServer = new UdpServer(this, port+1);
+    
   }
   
   void netStatus(NetStatus theStatus){
@@ -42,20 +53,21 @@ class NetCom  implements NetListener {
   }
   
   void netEvent(NetMessage msg){
-    println(">>" + msg.getString());
-    gl.resolveMessage(msg.getString());
+    String m = msg.getString().trim();
+    println(">>" + m);
+    gl.resolveMessage(m);
   }
   
   public void send(String msg){
-    
-    //try{
-      
-      
-      println("sending: " + msg);
-      //out.println(msg);
-      myClient.send(msg+"\n");
-    //}catch (IOException e){
-    //  println("IOException: " + e.getMessage());
-    //}
+    println("sending: " + msg);
+    myClient.send(msg+"\n");
+  }
+  
+  public void udp_send(String msg){
+    if(udpClient==null){
+      println("no udp socket");
+      return;
+    }
+    udpClient.send(msg+"\n");
   }
 }
