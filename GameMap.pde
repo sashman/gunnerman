@@ -130,12 +130,6 @@ class GameMap {
                                         int[] c = p.relevant_cells.removeFirst();
                                         cells[c[0]][c[1]].remove(p);
                                       }
-                                      /*
-                                      for(int i = 0; i<p.relevant_cells.size(); i++){
-                                        cells[p.relevant_cells.get(i)[0]][p.relevant_cells.get(i)[1]].remove(p);
-                                      }
-                                      */
-                                      //p.relevant_cells = new LinkedList<int[]>();
                                     }
     
 
@@ -145,7 +139,6 @@ class GameMap {
         int[] cellpair = {i,j};
         p.relevant_cells.add(cellpair);
         if(!cells[i][j].contains(p)){
-          //println("\t cell " + i + ","+j);  
           cells[i][j].add(p);
         }
       }

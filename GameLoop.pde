@@ -74,6 +74,9 @@ class GameLoop{
   boolean ai_count_down_press = false;
   boolean start_press = false;
   
+  int ai_count_press_delay;
+  int ai_count_press_max = 500;
+  
   
   //lobby
   NetCom netcom;
@@ -212,15 +215,21 @@ class GameLoop{
         
         if(ai_count_down_press){
           ai_count_down_press = false;
-          ai_count--;
-          ai_count = constrain(ai_count, ai_min, ai_max);
+          if(millis() - ai_count_press_delay > ai_count_press_max){
+            ai_count_press_delay = millis();
+            ai_count--;
+            ai_count = constrain(ai_count, ai_min, ai_max);
+          }
           
         }
         
         if(ai_count_up_press){
           ai_count_up_press = false;
-          ai_count++;
-          ai_count = constrain(ai_count, ai_min, ai_max);
+          if(millis() - ai_count_press_delay > ai_count_press_max){
+            ai_count_press_delay = millis();
+            ai_count++;
+            ai_count = constrain(ai_count, ai_min, ai_max);
+          }
           
         }
 
