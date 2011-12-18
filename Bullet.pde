@@ -24,6 +24,17 @@ class Bullet extends GameObject{
    if(x+2 > m.sizeX || x< 0 || y+2 > m.sizeY || y < 0) this.alive = false;
    else this.alive = true;
    
+   Collision c = check_collision(true);
+     if(c.value !=-999){
+       alive = false;
+       x = -100;
+       y = -100;
+       if(c.type == "player"){
+         GameObject colobj = c.o;
+         colobj.loseLife();
+       }
+     }
+   
  }
  
 
