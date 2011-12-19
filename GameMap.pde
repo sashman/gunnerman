@@ -100,15 +100,11 @@ class GameMap {
     int j1 = (int)(((float)o.y/(float)sizeY)*cell_h);
     int i2 = (int)((float)(o.x+o.width)/(float)sizeX*cell_w);
     int j2 = (int)((float)(o.y+o.height)/(float)sizeY*cell_h);
-    
-    //println("Adding new wall");
-//    println("x=" + o.x + " y=" + o.y);
-    //println("i1 = " + i1 + " j1 = " + j1 + " i2 = " + i2 + " j2 = " + j2 );
+
     for(int i = i1; i<=i2; i++){
       for(int j = j1; j<=j2; j++){
         
         if(!cells[i][j].contains(o)){
-          //println("\t cell " + i + ","+j);  
           cells[i][j].add(o);
         }
       }
@@ -120,8 +116,7 @@ class GameMap {
     int j1 = (int)(((float)(p.y-(p.size/2))/(float)sizeY)*cell_h);
     int i2 = (int)((float)(p.x+(p.size/2))/(float)sizeX*cell_w);
     int j2 = (int)((float)(p.y+(p.size/2))/(float)sizeY*cell_h);
-    
-    //println("i1 = " + i1 + " j1 = " + j1 + " i2 = " + i2 + " j2 = " + j2 );
+
     
     if(p.relevant_cells.size()>0 && p.relevant_cells.getFirst()[0] == i1 && p.relevant_cells.getFirst()[1] == j1 &&
                                     p.relevant_cells.getLast()[0] == i2 && p.relevant_cells.getLast()[1] == j2) return;
@@ -154,8 +149,25 @@ class GameMap {
   }
   
   public void render(){
+    //renderColCells();
     renderWalls();
     renderBullets();
+    
+  }
+  
+  private void renderColCells(){
+    for(int i = 0; i < cell_w; i++){
+      fill(0);
+      int x_ = (int)(((float)i/(float)cell_w) * sizeX);
+      line(x_-vpX, 0-vpY, x_-vpX, sizeY-vpY); 
+    }
+    
+    for(int i = 0; i < cell_h; i++){
+      fill(0);
+      int y_ = (int)(((float)i/(float)cell_h) * sizeY);
+      line(0-vpX, y_-vpY, sizeX-vpX, y_-vpY); 
+    }
+    
   }
   
   public void renderWalls(){

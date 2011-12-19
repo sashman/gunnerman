@@ -116,8 +116,9 @@ void draw() {
 
 
 public boolean surfaceTouchEvent(MotionEvent me) {
-  
+  try{
   gl.touchEvent(current_state, me);
+  }catch(NullPointerException e){}
   return super.surfaceTouchEvent(me);
 }
 

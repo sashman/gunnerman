@@ -23,6 +23,7 @@ class RandomAI implements PlayerControl{
  
  public void update(Player p){
    
+   
    //direction
    if(millis() - dir_choice_count > dir_choice_change){
      dir_choice_count = millis();
@@ -48,6 +49,7 @@ class RandomAI implements PlayerControl{
    } else {
 
    }
+   
    
  }
  

@@ -5,6 +5,19 @@ class GameLoop{
   
   processing.android.test.gunnerman.gunnerman top_level;
   
+  //analysis
+  boolean analyse = true;
+  int max_fps = 0;
+  int min_fps = 100;
+  
+  int fps_record_count;
+  int fps_record_delay = 500;
+  int max_game_time = 60000;
+  LinkedList fps_record = new LinkedList();
+ 
+  int last_fps = 0;
+  
+  
   //game states
   final int START_STATE = 0;
   final int CONNECT_STATE = 1;
@@ -149,6 +162,8 @@ class GameLoop{
     this.height = height;
     this.top_level = top_level;
     
+    fps_record_count = millis();
+    
     //title
     title_delay = millis();
     join_y = height - 54;
@@ -272,7 +287,7 @@ class GameLoop{
           
           if(!r_press && !fired){
             player.fire();
-            
+            if(multiplayer) netcom.udp_send("fire " + player.x + " " + player.y + " " + player.dir);
             fired = true;
           }
           
@@ -292,8 +307,8 @@ class GameLoop{
       
         player.update();
         
-        
         for(int i=0; i<opponents.size(); i++) opponents.get(i).update();
+        
         game_map.update();
         
         
@@ -308,9 +323,32 @@ class GameLoop{
           println("GAME OVER");
         }
         
-        if(game_over_count>-1 && millis() - game_over_count > game_over_max){
+        if(millis() > max_game_time || game_over_count>-1 && millis() - game_over_count > game_over_max){
           state = SCORE_STATE;
+          
+          if(analyse){
+            println("max fps " + max_fps);
+            println("min fps " + min_fps);
+            
+            String[] out = new String[fps_record.size()];
+            int r_i = 0;
+            int total = 0;
+            while(fps_record.size()>0){
+              //println(r_i++ + " " + (Integer)fps_record.removeFirst());
+              int val = (Integer)fps_record.removeFirst();
+              total += val;
+              out[r_i] = r_i++ + " " + val;
+
+            }
+            println("avg fps " + total/out.length);
+            saveStrings(dataPath("/sdcard/gunnerman/analysis/fps/last_run"), out);
+            println("done saving run");
+          }
         }
+        
+          if(analyse)
+            fps_record.add((int)frameRate);
+  
       
       break;
       case SCORE_STATE:
@@ -437,28 +475,33 @@ class GameLoop{
         background(245); 
         stroke(0);
         
+        
         player.render();
         for(int k=0; k<opponents.size(); k++) opponents.get(k).render();
+        
+        
         game_map.render();
+        
         draw_controls();
         
+        
+        
+        /*
+        fill(0);        
+        if(millis() - fps_record_count > fps_record_delay){
+          fps_record_count = millis();
+
+          last_fps = int(frameRate);
+        }
         textFont(font,10);
-        fill(0);
-        text("FPS " + int(frameRate),10,10);
+        text("FPS " + last_fps,10,10);
+        */
+        
         player.renderHUD();
-      
-      /*
-      player.render();
-      for(int i=0; i<opponents.size(); i++) opponents.get(i).render();
-      game_map.render();
-      draw_controls();
-      
-      textFont(font,10);
-      fill(0);
-      text("FPS " + int(frameRate),10,10);
-      player.renderHUD();
-      */
-      
+        
+        
+        if(int(frameRate)>max_fps) max_fps = int(frameRate);
+        if(int(frameRate)<min_fps) min_fps = int(frameRate);
       
       break;
       case SCORE_STATE:

@@ -1,5 +1,5 @@
 class Player extends GameObject{
-  boolean show_coords = true;
+  boolean show_coords = false;
   
   //net related
   int net_id = -1;
@@ -214,7 +214,7 @@ class Player extends GameObject{
     if(alive){
       if(pc==null) fill(255);
       else fill(127);
-      line(sc_x,sc_y,cos(-dir+(3.14/2))*point_size+sc_x, sin(-dir+(3.14/2))*point_size+sc_y);
+      line(sc_x,sc_y,cos(-dir+(HALF_PI))*point_size+sc_x, sin(-dir+(HALF_PI))*point_size+sc_y);
       ellipse(sc_x, sc_y, size,size);
     } else {
       textFont(font,14);
@@ -226,25 +226,32 @@ class Player extends GameObject{
   }
   
   private void renderHUD(){
-    textFont(font,24);
+    //textFont(font,16);
+    
+    
      switch(weapon){
        case 0:
-         fill(0);
-         text("Pistol", 50, 20);
-
-         rect(50,30, 40, 10);
-         fill(255);
-         if(fired && alive)
+         //text("Pistol", 50, 20);
+         
+         if(fired && alive){
+           fill(0);
+           rect(50,30, 40, 10);
+           fill(255);
            rect(50,30, (float)(millis()-fire_count)/(float)pistol_delay * 40, 10);
-         else rect(50,30, 40, 10);
+         } else rect(50,30, 40, 10);
          break;
      }
-
-    fill(0);
-    for(int i=0; i<max_lives; i++) ellipse(50+(i*10), 50, 8, 8);
-    fill(255);
     
-    for(int i=0; i<lives; i++) ellipse(50+(i*10), 50, 8, 8);
+
+ 
+    fill(255);
+    for(int i=0; i<max_lives; i++){
+      if(i>lives) fill(0);
+      ellipse(50+(i*10), 50, 8, 8);
+    }
+    
+    
+    //for(int i=0; i<lives; i++) ellipse(50+(i*10), 50, 8, 8);
     
     if(show_coords){
       textFont(font,12);
