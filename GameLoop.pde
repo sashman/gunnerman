@@ -6,7 +6,7 @@ class GameLoop{
   processing.android.test.gunnerman.gunnerman top_level;
   
   //analysis
-  boolean analyse = true;
+  boolean analyse = false;
   int max_fps = 0;
   int min_fps = 100;
   
